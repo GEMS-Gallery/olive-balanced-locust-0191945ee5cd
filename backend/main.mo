@@ -11,12 +11,19 @@ import Hash "mo:base/Hash";
 
 actor {
   // Types
+  type CategoryId = Nat;
   type TopicId = Nat;
   type PostId = Nat;
   type ReplyId = Nat;
 
+  type Category = {
+    id: CategoryId;
+    name: Text;
+  };
+
   type Topic = {
     id: TopicId;
+    categoryId: CategoryId;
     title: Text;
     createdAt: Time.Time;
   };
@@ -37,11 +44,13 @@ actor {
   };
 
   // Stable variables
+  stable var nextCategoryId: Nat = 0;
   stable var nextTopicId: Nat = 0;
   stable var nextPostId: Nat = 0;
   stable var nextReplyId: Nat = 0;
 
   // Mutable state
+  let categories = HashMap.HashMap<CategoryId, Category>(10, Nat.equal, Hash.hash);
   let topics = HashMap.HashMap<TopicId, Topic>(10, Nat.equal, Hash.hash);
   let posts = HashMap.HashMap<PostId, Post>(50, Nat.equal, Hash.hash);
   let replies = HashMap.HashMap<ReplyId, Reply>(100, Nat.equal, Hash.hash);
@@ -51,22 +60,56 @@ actor {
     nextId
   };
 
-  // Create a new topic
-  public func createTopic(title: Text) : async Result.Result<TopicId, Text> {
-    let id = generateId(nextTopicId);
-    nextTopicId += 1;
-    let topic: Topic = {
+  // Create a new category
+  public func createCategory(name: Text) : async Result.Result<CategoryId, Text> {
+    let id = generateId(nextCategoryId);
+    nextCategoryId += 1;
+    let category: Category = {
       id = id;
-      title = title;
-      createdAt = Time.now();
+      name = name;
     };
-    topics.put(id, topic);
+    categories.put(id, category);
     #ok(id)
+  };
+
+  // Get all categories
+  public query func getCategories() : async [Category] {
+    Buffer.toArray(Buffer.fromIter<Category>(categories.vals()))
+  };
+
+  // Create a new topic
+  public func createTopic(categoryId: CategoryId, title: Text) : async Result.Result<TopicId, Text> {
+    switch (categories.get(categoryId)) {
+      case null { #err("Category not found") };
+      case (?_) {
+        let id = generateId(nextTopicId);
+        nextTopicId += 1;
+        let topic: Topic = {
+          id = id;
+          categoryId = categoryId;
+          title = title;
+          createdAt = Time.now();
+        };
+        topics.put(id, topic);
+        #ok(id)
+      };
+    }
   };
 
   // Get all topics
   public query func getTopics() : async [Topic] {
     Buffer.toArray(Buffer.fromIter<Topic>(topics.vals()))
+  };
+
+  // Get topics for a specific category
+  public query func getTopicsByCategory(categoryId: CategoryId) : async [Topic] {
+    let categoryTopics = Buffer.Buffer<Topic>(0);
+    for (topic in topics.vals()) {
+      if (topic.categoryId == categoryId) {
+        categoryTopics.add(topic);
+      };
+    };
+    Buffer.toArray(categoryTopics)
   };
 
   // Create a new post
@@ -138,5 +181,13 @@ actor {
         Buffer.toArray(postReplies)
       };
     }
+  };
+
+  // Initialize categories
+  public func initCategories() : async () {
+    let categoryNames = ["General", "Technology", "Science", "Arts", "Sports", "Entertainment"];
+    for (name in categoryNames.vals()) {
+      ignore await createCategory(name);
+    };
   };
 }

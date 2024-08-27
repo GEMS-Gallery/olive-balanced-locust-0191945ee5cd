@@ -1,11 +1,17 @@
 type TopicId = nat;
 type Topic = 
  record {
+   categoryId: CategoryId;
    createdAt: Time;
    id: TopicId;
    title: text;
  };
 type Time = int;
+type Result_3 = 
+ variant {
+   err: text;
+   ok: CategoryId;
+ };
 type Result_2 = 
  variant {
    err: text;
@@ -38,11 +44,21 @@ type Post =
    replies: vec ReplyId;
    topicId: TopicId;
  };
+type CategoryId = nat;
+type Category = 
+ record {
+   id: CategoryId;
+   name: text;
+ };
 service : {
+  createCategory: (text) -> (Result_3);
   createPost: (TopicId, text) -> (Result_2);
   createReply: (PostId, text) -> (Result_1);
-  createTopic: (text) -> (Result);
+  createTopic: (CategoryId, text) -> (Result);
+  getCategories: () -> (vec Category) query;
   getPosts: (TopicId) -> (vec Post) query;
   getReplies: (PostId) -> (vec Reply) query;
   getTopics: () -> (vec Topic) query;
+  getTopicsByCategory: (CategoryId) -> (vec Topic) query;
+  initCategories: () -> ();
 }
