@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Typography, List, ListItem, ListItemText, TextField, Button, CircularProgress } from '@mui/material';
+import { Typography, List, ListItem, ListItemText, TextField, Button, CircularProgress, Fab } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 import { backend } from '../../declarations/backend';
 
 interface Post {
@@ -23,6 +24,7 @@ const TopicDetail: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showNewPostForm, setShowNewPostForm] = useState(false);
 
   useEffect(() => {
     if (topicId) {
@@ -47,6 +49,7 @@ const TopicDetail: React.FC = () => {
       const result = await backend.createPost(BigInt(topicId), newPostContent);
       if ('ok' in result) {
         setNewPostContent('');
+        setShowNewPostForm(false);
         fetchPosts();
       } else {
         console.error('Error creating post:', result.err);
@@ -72,24 +75,31 @@ const TopicDetail: React.FC = () => {
           </ListItem>
         ))}
       </List>
-      <TextField
-        label="New Post Content"
-        variant="outlined"
-        value={newPostContent}
-        onChange={(e) => setNewPostContent(e.target.value)}
-        fullWidth
-        margin="normal"
-        multiline
-        rows={4}
-      />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleCreatePost}
-        disabled={loading}
-      >
-        {loading ? <CircularProgress size={24} /> : 'Create Post'}
-      </Button>
+      <Fab color="primary" aria-label="add" onClick={() => setShowNewPostForm(true)} style={{ position: 'fixed', bottom: 20, right: 20 }}>
+        <AddIcon />
+      </Fab>
+      {showNewPostForm && (
+        <div>
+          <TextField
+            label="New Post Content"
+            variant="outlined"
+            value={newPostContent}
+            onChange={(e) => setNewPostContent(e.target.value)}
+            fullWidth
+            margin="normal"
+            multiline
+            rows={4}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreatePost}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Create Post'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

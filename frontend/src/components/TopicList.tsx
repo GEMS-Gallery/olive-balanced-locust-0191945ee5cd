@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Typography, List, ListItem, ListItemText, TextField, Button, CircularProgress } from '@mui/material';
+import { Typography, List, ListItem, ListItemText, TextField, Button, CircularProgress, Fab } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 import { backend } from '../../declarations/backend';
 
 interface Topic {
@@ -15,6 +16,7 @@ const TopicList: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [newTopicTitle, setNewTopicTitle] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showNewTopicForm, setShowNewTopicForm] = useState(false);
 
   useEffect(() => {
     fetchTopics();
@@ -41,6 +43,7 @@ const TopicList: React.FC = () => {
       const result = await backend.createTopic(BigInt(categoryId), newTopicTitle);
       if ('ok' in result) {
         setNewTopicTitle('');
+        setShowNewTopicForm(false);
         fetchTopics();
       } else {
         console.error('Error creating topic:', result.err);
@@ -67,7 +70,12 @@ const TopicList: React.FC = () => {
         ))}
       </List>
       {categoryId && (
-        <>
+        <Fab color="primary" aria-label="add" onClick={() => setShowNewTopicForm(true)} style={{ position: 'fixed', bottom: 20, right: 20 }}>
+          <AddIcon />
+        </Fab>
+      )}
+      {showNewTopicForm && (
+        <div>
           <TextField
             label="New Topic Title"
             variant="outlined"
@@ -84,7 +92,7 @@ const TopicList: React.FC = () => {
           >
             {loading ? <CircularProgress size={24} /> : 'Create Topic'}
           </Button>
-        </>
+        </div>
       )}
     </div>
   );

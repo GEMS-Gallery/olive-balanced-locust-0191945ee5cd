@@ -6,6 +6,7 @@ import { AppBar, Toolbar, Typography, Container, List, ListItem, ListItemIcon, L
 import { Home as HomeIcon, Forum as ForumIcon } from '@mui/icons-material';
 import TopicList from './components/TopicList';
 import TopicDetail from './components/TopicDetail';
+import CategoryGrid from './components/CategoryGrid';
 import { backend } from '../declarations/backend';
 
 interface Category {
@@ -76,7 +77,7 @@ const App: React.FC = () => {
         </div>
         <Container className="main-content">
           <Routes>
-            <Route path="/" element={<TopicList />} />
+            <Route path="/" element={<CategoryGrid categories={categories} />} />
             <Route path="/category/:categoryId" element={<TopicList />} />
             <Route path="/topics/:topicId" element={<TopicDetail />} />
           </Routes>
