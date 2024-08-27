@@ -1,0 +1,48 @@
+type TopicId = nat;
+type Topic = 
+ record {
+   createdAt: Time;
+   id: TopicId;
+   title: text;
+ };
+type Time = int;
+type Result_2 = 
+ variant {
+   err: text;
+   ok: PostId;
+ };
+type Result_1 = 
+ variant {
+   err: text;
+   ok: ReplyId;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: TopicId;
+ };
+type ReplyId = nat;
+type Reply = 
+ record {
+   content: text;
+   createdAt: Time;
+   id: ReplyId;
+   postId: PostId;
+ };
+type PostId = nat;
+type Post = 
+ record {
+   content: text;
+   createdAt: Time;
+   id: PostId;
+   replies: vec ReplyId;
+   topicId: TopicId;
+ };
+service : {
+  createPost: (TopicId, text) -> (Result_2);
+  createReply: (PostId, text) -> (Result_1);
+  createTopic: (text) -> (Result);
+  getPosts: (TopicId) -> (vec Post) query;
+  getReplies: (PostId) -> (vec Reply) query;
+  getTopics: () -> (vec Topic) query;
+}
